@@ -1,0 +1,345 @@
+/*
+CSCI 3310 Term Project 
+Represents a database for a phone recycling company tracking customer and phone information
+Sydnie Pittman
+*/
+DROP TABLE customer CASCADE CONSTRAINTS;
+DROP TABLE receipt CASCADE CONSTRAINTS;
+DROP TABLE recycled_phones CASCADE CONSTRAINTS;
+DROP TABLE phone CASCADE CONSTRAINTS;
+DROP TABLE phoneModel CASCADE CONSTRAINTS;
+DROP TABLE phoneCondition CASCADE CONSTRAINTS;
+
+CREATE TABLE Store (
+                storeNum NUMBER(4) NOT NULL,
+                name VARCHAR2(20) NOT NULL,
+                address VARCHAR2(50) NOT NULL,
+                zip NUMBER NOT NULL,
+                CONSTRAINT STORE_PK PRIMARY KEY (storeNum)
+);
+
+
+CREATE TABLE Customer (
+                phoneNum NUMBER(10) NOT NULL,
+                firstName VARCHAR2(20) NOT NULL,
+                lastName VARCHAR2(20) NOT NULL,
+                address VARCHAR2(100),
+                licenseNum NUMBER(7),
+                CONSTRAINT CUSTOMERID PRIMARY KEY (phoneNum)
+);
+
+
+CREATE TABLE receipt (
+                receiptNo NUMBER(9) NOT NULL,
+                date_1 VARCHAR(10) NOT NULL,
+                time NUMBER,
+                value NUMBER(5,2) NOT NULL,
+                customer_phoneNum NUMBER(10) NOT NULL,
+                store_num_rec NUMBER(4) NOT NULL,
+                CONSTRAINT RECEIPT_PK PRIMARY KEY (receiptNo)
+);
+COMMENT ON COLUMN receipt.date_1 IS 'MMDDYYYY format';
+COMMENT ON COLUMN receipt.time IS 'HHMM';
+
+
+CREATE TABLE recycled_phones (
+                receiptNo NUMBER(9) NOT NULL,
+                qty NUMBER(1) NOT NULL,
+                value NUMBER(5,2) NOT NULL,
+                CONSTRAINT RECYCLED_PHONES_PK PRIMARY KEY (receiptNo)
+);
+COMMENT ON COLUMN recycled_phones.qty IS '3 phone maximum per transaction ';
+
+
+CREATE TABLE Phone (
+                serialNo VARCHAR2(20) NOT NULL,
+                IMEI VARCHAR2(20),
+                MEID VARCHAR2(20) NOT NULL,
+                Memory VARCHAR2(20),
+                provider VARCHAR2(20),
+                receiptNo NUMBER(9) NOT NULL,
+                CONSTRAINT SERIALNO PRIMARY KEY (serialNo)
+);
+
+
+CREATE TABLE phoneModel (
+                serialNo VARCHAR2(20) NOT NULL,
+                provider VARCHAR2(20) NOT NULL,
+                model VARCHAR2(20) NOT NULL,
+                make VARCHAR2(20) NOT NULL,
+                CONSTRAINT PHONEMODEL_PK PRIMARY KEY (serialNo)
+);
+
+
+CREATE TABLE phoneCondition (
+                serialNo VARCHAR2(20) NOT NULL,
+                cracked CHAR(1) NOT NULL,
+                year NUMBER(4) NOT NULL,
+                holdCharge CHAR(1) NOT NULL,
+                modified CHAR(1) NOT NULL,
+                CONSTRAINT PHONECONDITION_PK PRIMARY KEY (serialNo)
+);
+COMMENT ON COLUMN phoneCondition.cracked IS 'Y/N';
+
+
+ALTER TABLE receipt ADD CONSTRAINT RECEIPT_STORE_FK
+FOREIGN KEY (store_num_rec)
+REFERENCES Store (storeNum)
+NOT DEFERRABLE;
+
+ALTER TABLE receipt ADD CONSTRAINT CUSTOMER_RECEIPT_FK
+FOREIGN KEY (customer_phoneNum)
+REFERENCES Customer (phoneNum)
+NOT DEFERRABLE;
+
+ALTER TABLE recycled_phones ADD CONSTRAINT RECEIPT_RECYCLED_PHONES_FK
+FOREIGN KEY (receiptNo)
+REFERENCES receipt (receiptNo)
+NOT DEFERRABLE;
+
+ALTER TABLE Phone ADD CONSTRAINT PHONE_RECYCLED_PHONES_FK
+FOREIGN KEY (receiptNo)
+REFERENCES recycled_phones (receiptNo)
+NOT DEFERRABLE;
+
+ALTER TABLE phoneModel ADD CONSTRAINT PHONE_PHONEMODEL_FK
+FOREIGN KEY (serialNo)
+REFERENCES Phone (serialNo)
+NOT DEFERRABLE;
+
+ALTER TABLE phoneCondition ADD CONSTRAINT PHONEMODEL_PHONECONDITION_FK
+FOREIGN KEY (serialNo)
+REFERENCES phoneModel (serialNo)
+NOT DEFERRABLE;
+
+/*
+ Data 
+*/
+--Store Data
+INSERT INTO Store(storeNum, name, address, zip)
+        VALUES(2200, 'Phone Swap Inc.', '345 Main Street', 30251);
+INSERT INTO Store(storeNum, name, address, zip)
+        VALUES(2201, 'Phone Swap Inc.', '362 Morrow Dr', 30243);
+INSERT INTO Store(storeNum, name, address, zip)
+        VALUES(2202, 'Give Me Phones', '4589 Atlanta Dr', 30245);
+
+--Customer data
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(5556789999, 'John', 'Doe', '123 Easy Street',0001234);
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(8002349180, 'Sally', 'Halls', '400 Main Street', 0002323);
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(8002349182, 'Freddy', 'Krueger', '400 Elm Street', 0002367);
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(6788884532, 'Allan', 'Walker', '567 Bouldercrest Rd', 0004565);
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(6782452333, 'Sara', 'Jenkins', '75 Main Street', 0005688);
+INSERT INTO Customer(phoneNum, firstName, lastName, address, licenseNum)
+        VALUES(4709872035, 'Jenae', 'Hill', '720 Raleigh St', 0009821);
+
+
+
+--Receipt data
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100023234, '10202024', 1130, 326.25, 5556789999, 2200);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100056789, '10222024', 1230, 104.09, 8002349180 , 2201);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100056725, '10312024', 0330, 75.02, 8002349182 , 2200);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100056726, '1122024', 0335, 85.96, 6788884532 , 2202);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100043767,'11122024', 1130, 150.25, 6782452333 , 2202);     
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(102453767,'11122024', 1133, 134.26, 6782452333 , 2202);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(102454510,'11112024', 1020, 504.56, 4709872035 , 2201);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100023237, '1112024', 1000, 200.54, 5556789999, 2200);
+INSERT INTO receipt(receiptNo, date_1, time, value, customer_phoneNum, store_num_rec)
+        VALUES(100056791, '11302024', 1230, 95.54, 8002349180 , 2202);
+
+--recycled phone data
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100023234, 1, 326.25);
+INSERT INTO recycled_phones(receiptNo, qty, value) 
+        VALUES(100056789, 1, 104.09);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100056725, 1, 75.02);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100056726, 1, 250.54);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100043767, 1, 150.25);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(102453767, 1, 134.26);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(102454510, 2, 504.56);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100023237, 1, 200.54);
+INSERT INTO recycled_phones(receiptNo, qty, value)
+        VALUES(100056791, 1, 95.54);
+
+UPDATE RECYCLED_PHONES
+SET value = 85.96 where receiptNo = 100056726;
+
+--phone data
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('C39QJ3H1C2X', '123456789012345', 'A1234567890ABCD', '128 GB', 'T-Mobile', 100023234);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('D49GJ3H2D4Y', '987654321098765', 'A0987654321EFGH', '64 GB', 'Verizon', 100056789);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('D49GJ3H6T53', '456654321098765', 'A0996554321EFGH', '32 GB', 'Boost', 100056725);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('X49GD3H5T53', '459854321098730', 'A1296554321EFXC', '128 GB', 'T-Mobile', 100056726);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('B78GD3H5TG6', '459855830098730', 'A1476554321EFXC', '64 GB', 'Verizon', 100043767);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('GH8GD3Z8TG7', '959432930098730', 'S34616554321EFXC', '128 GB', 'Verizon', 102453767);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('ZC56D3Z8TG7', '838432932298730', 'H78616984321EFXC', '256 GB', 'Cricket', 102454510);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('L9W6D3Z8TG7', '213432932298730', 'G67616984321EFXC', '256 GB', 'Cricket', 102454510);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('I8J6D3Z8TG7', '213432932296397', 'V65416984321EFXC', '128 GB', 'T-Mobile', 100023237);
+INSERT INTO Phone(serialNo, IMEI, MEID, Memory, provider, receiptNo)
+        VALUES('F7T6D3Z8TG7', '981732932296397', 'N29616984321EFXC', '64 GB', 'Verizon', 100056791);
+
+
+--phone model data
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('C39QJ3H1C2X', 'T-Mobile', 'IPhone 13', 'Apple');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('D49GJ3H2D4Y', 'Verizon', 'Iphone X', 'Apple');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('D49GJ3H6T53', 'Boost', 'Galaxy', 'Samsung');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('X49GD3H5T53', 'T-Mobile', 'Iphone 14', 'Apple');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('B78GD3H5TG6', 'Verizon', 'Iphone X', 'Apple');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('GH8GD3Z8TG7', 'Verizon', 'Pixel', 'Google');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('ZC56D3Z8TG7', 'Cricket', 'Galaxy S', 'Samsung');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('L9W6D3Z8TG7', 'Cricket', 'Razr', 'Motorola');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('I8J6D3Z8TG7', 'T-Mobile', 'Galaxy Flip', 'Samsung');
+INSERT INTO phoneModel(serialNo, provider, model, make)
+        VALUES('F7T6D3Z8TG7', 'Verizon', 'Galaxy A15', 'Samsung');
+
+--phoneCondition data
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCharge, modified)
+        VALUES('C39QJ3H1C2X', 'Y', 2021, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('D49GJ3H2D4Y', 'N', 2018, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('D49GJ3H6T53', 'Y', 2013, 'N', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('X49GD3H5T53', 'N', 2023, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('B78GD3H5TG6', 'N', 2016, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('GH8GD3Z8TG7', 'Y', 2020, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('ZC56D3Z8TG7', 'N', 2020, 'Y', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('L9W6D3Z8TG7', 'Y', 2018, 'Y', 'Y');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('I8J6D3Z8TG7', 'Y', 2017, 'N', 'N');
+INSERT INTO phoneCondition(serialNo, cracked, year, holdCHarge, modified)
+        VALUES('F7T6D3Z8TG7', 'Y', 2021, 'N', 'N');
+
+
+
+--Queries
+--1. A listing of all customer who have recycled a phone with name and a total amount, sort the data with descending order of the total amount.
+
+SELECT 
+        c.firstName AS customer_first_name, c.lastName AS customer_last_name, 
+        SUM(rp.value) AS total --total customer cash value
+FROM 
+        Customer c
+JOIN 
+        Receipt rc ON c.phoneNum = rc.customer_phoneNum --join based on customer phone#
+JOIN 
+        Recycled_phones rp ON rc.receiptNo = rp.receiptNo --join based on receipt#
+GROUP BY 
+        c.firstName, c.lastName
+ORDER BY 
+        total DESC --descendng order
+; 
+
+-- 2.
+SELECT DISTINCT 
+        c.firstName AS customer_first_name, c.lastName AS customer_last_name, 
+        SUM(rp.value) AS total --sum of customer 
+FROM 
+        Customer c
+JOIN 
+        Receipt rc ON c.phoneNum = rc.customer_phoneNum
+JOIN 
+        Recycled_phones rp ON rc.receiptNo = rp.receiptNo
+WHERE --compare cash value of customer to the average cash value of store using subquery 
+rp.value >(
+        SELECT AVG(rp_sub.value)
+        FROM Recycled_phones rp_sub
+        JOIN Receipt rc_sub ON rp_sub.receiptNo = rc_sub.receiptNo
+        WHERE rc_sub.store_num_rec = rc.store_num_rec
+)
+GROUP BY c.firstName, c.lastName
+ORDER BY total DESC
+;
+
+
+--3. A list of customer who recycled phone in more than one store
+
+SELECT
+    c.firstName || ' ' || c.lastName AS customer_name
+FROM
+    Customer c
+JOIN
+    receipt re ON c.phoneNum = re.customer_phoneNum
+GROUP BY
+    c.phoneNum, c.firstName, c.lastName
+HAVING
+    COUNT(DISTINCT re.store_num_rec) > 1
+;
+
+--4.
+SELECT
+    c.firstName || ' ' || c.lastName AS customer_name
+FROM
+    Customer c
+JOIN
+    receipt re ON c.phoneNum = re.customer_phoneNum
+JOIN
+    recycled_phones rp ON re.receiptNo = rp.receiptNo
+JOIN
+    Phone p ON rp.receiptNo = p.receiptNo
+JOIN
+    phoneModel pm ON p.serialNo = pm.serialNo
+GROUP BY
+    c.phoneNum, c.firstName, c.lastName
+HAVING
+    COUNT(DISTINCT pm.make) > 2;
+   
+
+--5.
+SELECT 
+    s.name AS store_name,
+    c.firstName AS customer_first_name,
+    c.lastName AS customer_last_name,
+    AVG(rp.value) AS average_store_cash_awarded
+FROM 
+    Store s
+JOIN 
+    Receipt rc ON s.storeNum = rc.store_num_rec
+JOIN 
+    Customer c ON rc.customer_phoneNum = c.phoneNum
+JOIN 
+    Recycled_phones rp ON rc.receiptNo = rp.receiptNo
+GROUP BY 
+    s.name, c.firstName, c.lastName
+ORDER BY 
+    s.name, c.firstName, c.lastName
+;
